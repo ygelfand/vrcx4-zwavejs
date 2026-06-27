@@ -12,6 +12,7 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.selector import (
     DeviceSelector,
@@ -88,31 +89,30 @@ class VRCx4OptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            buttons = {
-                str(b): {
-                    CONF_TARGETS: user_input.get(f"button_{b}_targets", []),
-                    CONF_ON_COLOR: user_input.get(f"button_{b}_on_color", DEFAULT_ON_COLOR),
-                    CONF_OFF_COLOR: user_input.get(f"button_{b}_off_color", DEFAULT_OFF_COLOR),
-                    CONF_DIRECT_DEVICES: user_input.get(f"button_{b}_direct", []),
+            buttons = {}
+            for b in range(1, NUM_BUTTONS + 1):
+                sec = user_input.get(f"button_{b}", {})
+                buttons[str(b)] = {
+                    CONF_TARGETS: sec.get("targets", []),
+                    CONF_DIRECT_DEVICES: sec.get("direct", []),
+                    CONF_ON_COLOR: sec.get("on_color", DEFAULT_ON_COLOR),
+                    CONF_OFF_COLOR: sec.get("off_color", DEFAULT_OFF_COLOR),
                 }
-                for b in range(1, NUM_BUTTONS + 1)
-            }
             return self.async_create_entry(data={CONF_BUTTONS: buttons})
 
         current = self.config_entry.options.get(CONF_BUTTONS, {})
         fields: dict = {}
         for b in range(1, NUM_BUTTONS + 1):
             saved = current.get(str(b), {})
-            fields[
-                vol.Optional(f"button_{b}_targets", default=saved.get(CONF_TARGETS, []))
-            ] = _TARGETS_SELECTOR
-            fields[
-                vol.Optional(f"button_{b}_on_color", default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR))
-            ] = _ON_COLOR_SELECTOR
-            fields[
-                vol.Optional(f"button_{b}_off_color", default=saved.get(CONF_OFF_COLOR, DEFAULT_OFF_COLOR))
-            ] = _OFF_COLOR_SELECTOR
-            fields[
-                vol.Optional(f"button_{b}_direct", default=saved.get(CONF_DIRECT_DEVICES, []))
-            ] = _DIRECT_SELECTOR
+            fields[vol.Required(f"button_{b}")] = section(
+                vol.Schema(
+                    {
+                        vol.Optional("targets", default=saved.get(CONF_TARGETS, [])): _TARGETS_SELECTOR,
+                        vol.Optional("direct", default=saved.get(CONF_DIRECT_DEVICES, [])): _DIRECT_SELECTOR,
+                        vol.Optional("on_color", default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR)): _ON_COLOR_SELECTOR,
+                        vol.Optional("off_color", default=saved.get(CONF_OFF_COLOR, DEFAULT_OFF_COLOR)): _OFF_COLOR_SELECTOR,
+                    }
+                ),
+                {"collapsed": True},
+            )
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields))

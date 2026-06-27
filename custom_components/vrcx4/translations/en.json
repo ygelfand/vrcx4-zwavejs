@@ -16,23 +16,43 @@
     "step": {
       "init": {
         "title": "Button configuration",
-        "data": {
-          "button_1_targets": "Button 1 targets (hub-controlled)",
-          "button_1_on_color": "Button 1 on color",
-          "button_1_off_color": "Button 1 off color",
-          "button_1_direct": "Button 1 direct Z-Wave devices",
-          "button_2_targets": "Button 2 targets (hub-controlled)",
-          "button_2_on_color": "Button 2 on color",
-          "button_2_off_color": "Button 2 off color",
-          "button_2_direct": "Button 2 direct Z-Wave devices",
-          "button_3_targets": "Button 3 targets (hub-controlled)",
-          "button_3_on_color": "Button 3 on color",
-          "button_3_off_color": "Button 3 off color",
-          "button_3_direct": "Button 3 direct Z-Wave devices",
-          "button_4_targets": "Button 4 targets (hub-controlled)",
-          "button_4_on_color": "Button 4 on color",
-          "button_4_off_color": "Button 4 off color",
-          "button_4_direct": "Button 4 direct Z-Wave devices"
+        "sections": {
+          "button_1": {
+            "name": "Button 1",
+            "data": {
+              "targets": "Targets (hub-controlled)",
+              "direct": "Direct Z-Wave devices",
+              "on_color": "On color",
+              "off_color": "Off color"
+            }
+          },
+          "button_2": {
+            "name": "Button 2",
+            "data": {
+              "targets": "Targets (hub-controlled)",
+              "direct": "Direct Z-Wave devices",
+              "on_color": "On color",
+              "off_color": "Off color"
+            }
+          },
+          "button_3": {
+            "name": "Button 3",
+            "data": {
+              "targets": "Targets (hub-controlled)",
+              "direct": "Direct Z-Wave devices",
+              "on_color": "On color",
+              "off_color": "Off color"
+            }
+          },
+          "button_4": {
+            "name": "Button 4",
+            "data": {
+              "targets": "Targets (hub-controlled)",
+              "direct": "Direct Z-Wave devices",
+              "on_color": "On color",
+              "off_color": "Off color"
+            }
+          }
         }
       }
     }
