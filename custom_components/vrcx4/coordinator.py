@@ -105,14 +105,16 @@ class VRCx4Controller:
         """Ensure the hub is in every button group (so presses reach HA), plus
         any configured direct z-wave loads."""
         controller = self._node.client.driver.controller
-        source = AssociationAddress(node_id=self.node_id)
-        targets_base = [AssociationAddress(node_id=controller.own_node_id)]
+        source = AssociationAddress(controller=controller, node_id=self.node_id)
+        targets_base = [
+            AssociationAddress(controller=controller, node_id=controller.own_node_id)
+        ]
         for button in range(1, NUM_BUTTONS + 1):
             targets = list(targets_base)
             cfg = self.buttons.get(button)
             if cfg:
                 targets += [
-                    AssociationAddress(node_id=n)
+                    AssociationAddress(controller=controller, node_id=n)
                     for d in cfg.direct_device_ids
                     if (n := self._device_node_id(d))
                 ]
