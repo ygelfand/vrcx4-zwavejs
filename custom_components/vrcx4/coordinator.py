@@ -88,17 +88,9 @@ class VRCx4Controller:
         self._unsubs.clear()
 
     async def _async_apply_scene_controller_config(self) -> None:
-        """Set each scene-controller group's sceneId = group, so every press emits
-        an identified scene. Groups are whatever the device exposes (VRCS4 has 8,
-        VRCZ4 has 4)."""
-        groups = sorted(
-            value.property_key
-            for value in self._node.values.values()
-            if value.command_class == CC_SCENE_CONTROLLER_CONFIGURATION
-            and value.property_ == "sceneId"
-            and isinstance(value.property_key, int)
-        )
-        for group in groups:
+        """Set scene-controller group G's sceneId = G for all groups, so every
+        button press emits an identified scene (1..N on, N+1..2N off)."""
+        for group in range(1, 2 * NUM_BUTTONS + 1):
             await self._node.async_invoke_cc_api(
                 CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", group, group
             )
