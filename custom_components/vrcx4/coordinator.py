@@ -12,8 +12,9 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from zwave_js_server.const import CommandClass
 
+from zwave_js_server.model.association import AssociationAddress
+
 from .const import (
-    CC_ASSOCIATION,
     CC_MANUFACTURER_PROPRIETARY,
     CC_SCENE_ACTIVATION,
     CC_SCENE_CONTROLLER_CONFIGURATION,
@@ -103,15 +104,27 @@ class VRCx4Controller:
     async def _async_apply_associations(self) -> None:
         """Ensure the hub is in every button group (so presses reach HA), plus
         any configured direct z-wave loads."""
-        hub_id = self._node.client.driver.controller.own_node_id
+        controller = self._node.client.driver.controller
+        source = AssociationAddress(node_id=self.node_id)
+        targets_base = [AssociationAddress(node_id=controller.own_node_id)]
         for button in range(1, NUM_BUTTONS + 1):
-            node_ids = [hub_id]
+            targets = list(targets_base)
             cfg = self.buttons.get(button)
             if cfg:
-                node_ids += [n for d in cfg.direct_device_ids if (n := self._device_node_id(d))]
-            await self._node.async_invoke_cc_api(
-                CommandClass(CC_ASSOCIATION), "addNodeIds", button, *node_ids
-            )
+                targets += [
+                    AssociationAddress(node_id=n)
+                    for d in cfg.direct_device_ids
+                    if (n := self._device_node_id(d))
+                ]
+            try:
+                await controller.async_add_associations(source, button, targets)
+            except Exception as err:  # noqa: BLE001
+                _LOGGER.warning(
+                    "vrcx4: associating group %s on node %s failed: %s",
+                    button,
+                    self.node_id,
+                    err,
+                )
 
     def _device_node_id(self, device_id: str) -> int | None:
         try:
