@@ -20,6 +20,7 @@ from .const import (
     LED_STATE_DOMAINS,
     NUM_BUTTONS,
     NUM_SCENES,
+    SCENE_CONFIG_PRODUCT_TYPES,
     SCENE_DEDUP_SECONDS,
     ZWAVE_JS_VALUE_NOTIFICATION,
 )
@@ -89,6 +90,11 @@ class VRCx4Controller:
 
     async def _async_apply_scene_controller_config(self) -> None:
         """Map each group to its sceneId so every press emits an identified scene."""
+        if self._node.product_type not in SCENE_CONFIG_PRODUCT_TYPES:
+            _LOGGER.debug(
+                "vrcx4: node %s emits scenes natively; skipping SCC setup", self.node_id
+            )
+            return
         for scene_id in range(1, NUM_SCENES + 1):
             await self._node.async_invoke_cc_api(
                 CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", scene_id, scene_id
