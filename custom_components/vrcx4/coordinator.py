@@ -101,11 +101,14 @@ class VRCx4Controller:
             )
 
     async def _async_apply_associations(self) -> None:
-        """Associate each button's direct z-wave loads into its group."""
-        for button, cfg in self.buttons.items():
-            node_ids = [n for d in cfg.direct_device_ids if (n := self._device_node_id(d))]
-            if not node_ids:
-                continue
+        """Ensure the hub is in every button group (so presses reach HA), plus
+        any configured direct z-wave loads."""
+        hub_id = self._node.client.driver.controller.own_node_id
+        for button in range(1, NUM_BUTTONS + 1):
+            node_ids = [hub_id]
+            cfg = self.buttons.get(button)
+            if cfg:
+                node_ids += [n for d in cfg.direct_device_ids if (n := self._device_node_id(d))]
             await self._node.async_invoke_cc_api(
                 CommandClass(CC_ASSOCIATION), "addNodeIds", button, *node_ids
             )
