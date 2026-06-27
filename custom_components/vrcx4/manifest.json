@@ -3,7 +3,7 @@
   "name": "Leviton VRCS4 / VRCZ4",
   "version": "0.1.0",
   "config_flow": true,
-  "dependencies": ["zwave_js"],
+  "after_dependencies": ["zwave_js"],
   "codeowners": ["@ygelfand"],
   "documentation": "https://github.com/ygelfand/vrcx4-zwavejs",
   "issue_tracker": "https://github.com/ygelfand/vrcx4-zwavejs/issues",
