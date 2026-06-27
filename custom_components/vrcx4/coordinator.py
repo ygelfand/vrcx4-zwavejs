@@ -8,12 +8,15 @@ from dataclasses import dataclass, field
 from homeassistant.components.zwave_js.helpers import async_get_node_from_device_id
 from homeassistant.const import STATE_ON
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
+    CC_ASSOCIATION,
     CC_MANUFACTURER_PROPRIETARY,
     CC_SCENE_ACTIVATION,
     CC_SCENE_CONTROLLER_CONFIGURATION,
+    LED_STATE_DOMAINS,
     NUM_BUTTONS,
     NUM_SCENES,
     SCENE_DEDUP_SECONDS,
@@ -29,9 +32,9 @@ _LOGGER = logging.getLogger(__name__)
 class ButtonConfig:
     """Per-button configuration."""
 
-    targets: list[str] = field(default_factory=list)  # HA entity_ids
+    targets: list[str] = field(default_factory=list)  # hub toggles these on press
     on_color: LedColor = LedColor.GREEN
-    direct_nodes: list[int] = field(default_factory=list)  # z-wave node ids
+    direct_device_ids: list[str] = field(default_factory=list)  # associated z-wave devices
 
 
 class VRCx4Controller:
@@ -49,8 +52,8 @@ class VRCx4Controller:
         self._node = None
         self._deduper = SceneDeduper(SCENE_DEDUP_SECONDS)
         self._unsubs: list = []
-        # Current per-button color; index 0 == button 1.
-        self._colors: list[LedColor] = [LedColor.OFF] * NUM_BUTTONS
+        # entity_ids whose state lights each button's LED (targets + direct loads)
+        self._led_entities: dict[int, list[str]] = {}
 
     @property
     def node_id(self) -> int:
@@ -60,17 +63,19 @@ class VRCx4Controller:
         self._node = async_get_node_from_device_id(self.hass, self.device_id)
 
         await self._async_apply_scene_controller_config()
+        await self._async_apply_associations()
+        self._resolve_led_entities()
 
         self._unsubs.append(
             self.hass.bus.async_listen(
                 ZWAVE_JS_VALUE_NOTIFICATION, self._handle_value_notification
             )
         )
-        targets = [t for cfg in self.buttons.values() for t in cfg.targets]
-        if targets:
+        watched = sorted({e for ents in self._led_entities.values() for e in ents})
+        if watched:
             self._unsubs.append(
                 async_track_state_change_event(
-                    self.hass, targets, self._handle_target_state_change
+                    self.hass, watched, self._handle_target_state_change
                 )
             )
         await self.async_refresh_leds()
@@ -87,6 +92,33 @@ class VRCx4Controller:
                 CC_SCENE_CONTROLLER_CONFIGURATION, "set", scene_id, scene_id
             )
 
+    async def _async_apply_associations(self) -> None:
+        """Associate each button's direct z-wave loads into its group."""
+        for button, cfg in self.buttons.items():
+            node_ids = [n for d in cfg.direct_device_ids if (n := self._device_node_id(d))]
+            if not node_ids:
+                continue
+            await self._node.async_invoke_cc_api(
+                CC_ASSOCIATION, "addNodeIds", button, *node_ids
+            )
+
+    def _device_node_id(self, device_id: str) -> int | None:
+        try:
+            return async_get_node_from_device_id(self.hass, device_id).node_id
+        except (ValueError, KeyError):
+            _LOGGER.warning("vrcx4: %s is not a z-wave node; skipping", device_id)
+            return None
+
+    def _resolve_led_entities(self) -> None:
+        ent_reg = er.async_get(self.hass)
+        for button, cfg in self.buttons.items():
+            entities = list(cfg.targets)
+            for device_id in cfg.direct_device_ids:
+                for entry in er.async_entries_for_device(ent_reg, device_id):
+                    if entry.domain in LED_STATE_DOMAINS:
+                        entities.append(entry.entity_id)
+            self._led_entities[button] = entities
+
     # --- input: button presses ---
 
     @callback
@@ -94,13 +126,15 @@ class VRCx4Controller:
         data = event.data
         if data.get("device_id") != self.device_id:
             return
-        if data.get("command_class") != CC_SCENE_ACTIVATION or data.get("property") != "sceneId":
+        if (
+            data.get("command_class") != CC_SCENE_ACTIVATION
+            or data.get("property") != "sceneId"
+        ):
             return
         scene_id = data.get("value")
         if not isinstance(scene_id, int):
             return
-        now = self.hass.loop.time()
-        if self._deduper.is_repeat(scene_id, now):
+        if self._deduper.is_repeat(scene_id, self.hass.loop.time()):
             return
         press = decode_scene(scene_id)
         if press is None:
@@ -111,7 +145,7 @@ class VRCx4Controller:
         cfg = self.buttons.get(button)
         if cfg is None:
             return
-        # Hub-handled targets: drive them. (Direct z-wave loads handle themselves.)
+        # Hub-handled targets only; direct z-wave loads acted on their own.
         service = "turn_on" if is_on else "turn_off"
         for entity_id in cfg.targets:
             domain = entity_id.split(".", 1)[0]
@@ -129,14 +163,13 @@ class VRCx4Controller:
         colors = [LedColor.OFF] * NUM_BUTTONS
         for button, cfg in self.buttons.items():
             on = any(
-                (state := self.hass.states.get(t)) is not None and state.state == STATE_ON
-                for t in cfg.targets
+                (state := self.hass.states.get(e)) is not None and state.state == STATE_ON
+                for e in self._led_entities.get(button, [])
             )
             colors[button - 1] = cfg.on_color if on else LedColor.OFF
         await self.async_set_leds(colors)
 
     async def async_set_leds(self, colors: list[LedColor]) -> None:
-        self._colors = colors
         light = pack_light_byte(colors)
         await self._node.async_invoke_cc_api(
             CC_MANUFACTURER_PROPRIETARY,

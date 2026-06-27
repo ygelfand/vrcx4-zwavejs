@@ -25,6 +25,7 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_BUTTONS,
     CONF_CONTROLLER_DEVICE_ID,
+    CONF_DIRECT_DEVICES,
     CONF_ON_COLOR,
     CONF_TARGETS,
     DEFAULT_ON_COLOR,
@@ -38,6 +39,9 @@ _COLOR_SELECTOR = SelectSelector(
     SelectSelectorConfig(options=ON_COLORS, translation_key="on_color")
 )
 _TARGETS_SELECTOR = EntitySelector(EntitySelectorConfig(multiple=True))
+_DIRECT_SELECTOR = DeviceSelector(
+    DeviceSelectorConfig(integration="zwave_js", multiple=True)
+)
 
 
 class VRCx4ConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -82,6 +86,7 @@ class VRCx4OptionsFlow(OptionsFlow):
                 str(b): {
                     CONF_TARGETS: user_input.get(f"button_{b}_targets", []),
                     CONF_ON_COLOR: user_input.get(f"button_{b}_color", DEFAULT_ON_COLOR),
+                    CONF_DIRECT_DEVICES: user_input.get(f"button_{b}_direct", []),
                 }
                 for b in range(1, NUM_BUTTONS + 1)
             }
@@ -92,15 +97,12 @@ class VRCx4OptionsFlow(OptionsFlow):
         for b in range(1, NUM_BUTTONS + 1):
             saved = current.get(str(b), {})
             fields[
-                vol.Optional(
-                    f"button_{b}_targets",
-                    default=saved.get(CONF_TARGETS, []),
-                )
+                vol.Optional(f"button_{b}_targets", default=saved.get(CONF_TARGETS, []))
             ] = _TARGETS_SELECTOR
             fields[
-                vol.Optional(
-                    f"button_{b}_color",
-                    default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR),
-                )
+                vol.Optional(f"button_{b}_color", default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR))
             ] = _COLOR_SELECTOR
+            fields[
+                vol.Optional(f"button_{b}_direct", default=saved.get(CONF_DIRECT_DEVICES, []))
+            ] = _DIRECT_SELECTOR
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields))
