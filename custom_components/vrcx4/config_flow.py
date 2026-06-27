@@ -26,17 +26,23 @@ from .const import (
     CONF_BUTTONS,
     CONF_CONTROLLER_DEVICE_ID,
     CONF_DIRECT_DEVICES,
+    CONF_OFF_COLOR,
     CONF_ON_COLOR,
     CONF_TARGETS,
+    DEFAULT_OFF_COLOR,
     DEFAULT_ON_COLOR,
     DOMAIN,
     NUM_BUTTONS,
 )
 
-ON_COLORS = ["green", "red", "amber"]
+ON_COLORS = ["green", "amber"]
+OFF_COLORS = ["off", "red"]
 
-_COLOR_SELECTOR = SelectSelector(
+_ON_COLOR_SELECTOR = SelectSelector(
     SelectSelectorConfig(options=ON_COLORS, translation_key="on_color")
+)
+_OFF_COLOR_SELECTOR = SelectSelector(
+    SelectSelectorConfig(options=OFF_COLORS, translation_key="off_color")
 )
 _TARGETS_SELECTOR = EntitySelector(EntitySelectorConfig(multiple=True))
 _DIRECT_SELECTOR = DeviceSelector(
@@ -85,7 +91,8 @@ class VRCx4OptionsFlow(OptionsFlow):
             buttons = {
                 str(b): {
                     CONF_TARGETS: user_input.get(f"button_{b}_targets", []),
-                    CONF_ON_COLOR: user_input.get(f"button_{b}_color", DEFAULT_ON_COLOR),
+                    CONF_ON_COLOR: user_input.get(f"button_{b}_on_color", DEFAULT_ON_COLOR),
+                    CONF_OFF_COLOR: user_input.get(f"button_{b}_off_color", DEFAULT_OFF_COLOR),
                     CONF_DIRECT_DEVICES: user_input.get(f"button_{b}_direct", []),
                 }
                 for b in range(1, NUM_BUTTONS + 1)
@@ -100,8 +107,11 @@ class VRCx4OptionsFlow(OptionsFlow):
                 vol.Optional(f"button_{b}_targets", default=saved.get(CONF_TARGETS, []))
             ] = _TARGETS_SELECTOR
             fields[
-                vol.Optional(f"button_{b}_color", default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR))
-            ] = _COLOR_SELECTOR
+                vol.Optional(f"button_{b}_on_color", default=saved.get(CONF_ON_COLOR, DEFAULT_ON_COLOR))
+            ] = _ON_COLOR_SELECTOR
+            fields[
+                vol.Optional(f"button_{b}_off_color", default=saved.get(CONF_OFF_COLOR, DEFAULT_OFF_COLOR))
+            ] = _OFF_COLOR_SELECTOR
             fields[
                 vol.Optional(f"button_{b}_direct", default=saved.get(CONF_DIRECT_DEVICES, []))
             ] = _DIRECT_SELECTOR

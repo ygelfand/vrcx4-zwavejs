@@ -9,6 +9,7 @@ from .const import (
     CONF_BUTTONS,
     CONF_CONTROLLER_DEVICE_ID,
     CONF_DIRECT_DEVICES,
+    CONF_OFF_COLOR,
     CONF_ON_COLOR,
     CONF_TARGETS,
     DOMAIN,
@@ -25,6 +26,7 @@ def _buttons_from_options(options: dict) -> dict[int, ButtonConfig]:
         buttons[int(key)] = ButtonConfig(
             targets=list(raw.get(CONF_TARGETS, [])),
             on_color=LedColor[raw.get(CONF_ON_COLOR, "GREEN").upper()],
+            off_color=LedColor[raw.get(CONF_OFF_COLOR, "OFF").upper()],
             direct_device_ids=list(raw.get(CONF_DIRECT_DEVICES, [])),
         )
     return buttons

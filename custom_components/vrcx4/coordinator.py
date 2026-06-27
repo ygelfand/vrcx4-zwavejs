@@ -35,6 +35,7 @@ class ButtonConfig:
 
     targets: list[str] = field(default_factory=list)  # hub toggles these on press
     on_color: LedColor = LedColor.GREEN
+    off_color: LedColor = LedColor.OFF
     direct_device_ids: list[str] = field(default_factory=list)  # associated z-wave devices
 
 
@@ -167,7 +168,7 @@ class VRCx4Controller:
                 (state := self.hass.states.get(e)) is not None and state.state == STATE_ON
                 for e in self._led_entities.get(button, [])
             )
-            colors[button - 1] = cfg.on_color if on else LedColor.OFF
+            colors[button - 1] = cfg.on_color if on else cfg.off_color
         await self.async_set_leds(colors)
 
     async def async_set_leds(self, colors: list[LedColor]) -> None:

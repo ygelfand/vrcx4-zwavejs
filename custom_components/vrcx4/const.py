@@ -32,7 +32,9 @@ SCENE_DEDUP_SECONDS = 2.0
 CONF_CONTROLLER_DEVICE_ID = "controller_device_id"
 CONF_BUTTONS = "buttons"
 CONF_TARGETS = "targets"  # HA entity_ids the hub toggles on press
-CONF_ON_COLOR = "on_color"  # LED color shown when the button's load is on
+CONF_ON_COLOR = "on_color"  # LED color when the button's load is on (green/amber)
+CONF_OFF_COLOR = "off_color"  # LED color when off (off/red locator)
 CONF_DIRECT_DEVICES = "direct_devices"  # z-wave device_ids associated for direct control
 
 DEFAULT_ON_COLOR = "green"
+DEFAULT_OFF_COLOR = "off"
