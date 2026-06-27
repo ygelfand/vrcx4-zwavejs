@@ -1,0 +1,41 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "VRCS4 / VRCZ4 controller",
+        "data": {
+          "controller_device_id": "Controller (Z-Wave device)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This controller is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Button configuration",
+        "data": {
+          "button_1_targets": "Button 1 targets",
+          "button_1_color": "Button 1 on color",
+          "button_2_targets": "Button 2 targets",
+          "button_2_color": "Button 2 on color",
+          "button_3_targets": "Button 3 targets",
+          "button_3_color": "Button 3 on color",
+          "button_4_targets": "Button 4 targets",
+          "button_4_color": "Button 4 on color"
+        }
+      }
+    }
+  },
+  "selector": {
+    "on_color": {
+      "options": {
+        "green": "Green",
+        "red": "Red",
+        "amber": "Amber"
+      }
+    }
+  }
+}
