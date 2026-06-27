@@ -88,17 +88,19 @@ class VRCx4Controller:
         self._unsubs.clear()
 
     async def _async_apply_scene_controller_config(self) -> None:
-        """Set each SCC slot's sceneId = slot so every press emits an identified
-        scene. Slot count is device-specific (VRCS4 has 8, VRCZ4 has 4)."""
-        slots = sorted(
-            int(vid.rsplit("-", 1)[1])
-            for vid in self._node.values
-            if vid.startswith(f"{CC_SCENE_CONTROLLER_CONFIGURATION}-")
-            and "-sceneId-" in vid
+        """Set each scene-controller group's sceneId = group, so every press emits
+        an identified scene. Groups are whatever the device exposes (VRCS4 has 8,
+        VRCZ4 has 4)."""
+        groups = sorted(
+            value.property_key
+            for value in self._node.values.values()
+            if value.command_class == CC_SCENE_CONTROLLER_CONFIGURATION
+            and value.property_ == "sceneId"
+            and isinstance(value.property_key, int)
         )
-        for slot in slots:
+        for group in groups:
             await self._node.async_invoke_cc_api(
-                CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", slot, slot
+                CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", group, group
             )
 
     async def _async_apply_associations(self) -> None:
