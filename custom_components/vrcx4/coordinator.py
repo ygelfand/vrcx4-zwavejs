@@ -10,6 +10,7 @@ from homeassistant.const import STATE_ON
 from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
+from zwave_js_server.const import CommandClass
 
 from .const import (
     CC_ASSOCIATION,
@@ -89,7 +90,7 @@ class VRCx4Controller:
         """Map each group to its sceneId so every press emits an identified scene."""
         for scene_id in range(1, NUM_SCENES + 1):
             await self._node.async_invoke_cc_api(
-                CC_SCENE_CONTROLLER_CONFIGURATION, "set", scene_id, scene_id
+                CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", scene_id, scene_id
             )
 
     async def _async_apply_associations(self) -> None:
@@ -99,7 +100,7 @@ class VRCx4Controller:
             if not node_ids:
                 continue
             await self._node.async_invoke_cc_api(
-                CC_ASSOCIATION, "addNodeIds", button, *node_ids
+                CommandClass(CC_ASSOCIATION), "addNodeIds", button, *node_ids
             )
 
     def _device_node_id(self, device_id: str) -> int | None:
@@ -172,7 +173,7 @@ class VRCx4Controller:
     async def async_set_leds(self, colors: list[LedColor]) -> None:
         light = pack_light_byte(colors)
         await self._node.async_invoke_cc_api(
-            CC_MANUFACTURER_PROPRIETARY,
+            CommandClass(CC_MANUFACTURER_PROPRIETARY),
             "sendData",
             *invoke_cc_api_args(self.node_id, light),
         )
