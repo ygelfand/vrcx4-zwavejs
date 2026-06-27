@@ -8,13 +8,7 @@ MANUFACTURER = "Leviton"
 # Number of buttons / scene-controller groups on the device.
 NUM_BUTTONS = 4
 
-# Scene Activation sceneIds 1..8 = 4 buttons x 2 directions (see scene.py).
-NUM_SCENES = 8
-
-# VRCS4 needs SCC 1..8 written to emit identified scenes for the off direction;
-# VRCZ4 emits 1..8 natively and only has 4 SCC slots (writing 5..8 errors).
-PRODUCT_TYPE_VRCS4 = 0x0802
-SCENE_CONFIG_PRODUCT_TYPES = {PRODUCT_TYPE_VRCS4}
+# Scene Activation sceneIds: 1..N on, N+1..2N off (N = NUM_BUTTONS). See scene.py.
 
 # Command classes we drive (decimal, as zwave-js-server expects).
 CC_ASSOCIATION = 0x85  # 133 - group membership (direct association)

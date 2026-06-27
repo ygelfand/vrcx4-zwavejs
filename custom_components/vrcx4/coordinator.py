@@ -20,8 +20,6 @@ from .const import (
     CC_SCENE_CONTROLLER_CONFIGURATION,
     LED_STATE_DOMAINS,
     NUM_BUTTONS,
-    NUM_SCENES,
-    SCENE_CONFIG_PRODUCT_TYPES,
     SCENE_DEDUP_SECONDS,
     ZWAVE_JS_VALUE_NOTIFICATION,
 )
@@ -90,15 +88,17 @@ class VRCx4Controller:
         self._unsubs.clear()
 
     async def _async_apply_scene_controller_config(self) -> None:
-        """Map each group to its sceneId so every press emits an identified scene."""
-        if self._node.product_type not in SCENE_CONFIG_PRODUCT_TYPES:
-            _LOGGER.debug(
-                "vrcx4: node %s emits scenes natively; skipping SCC setup", self.node_id
-            )
-            return
-        for scene_id in range(1, NUM_SCENES + 1):
+        """Set each SCC slot's sceneId = slot so every press emits an identified
+        scene. Slot count is device-specific (VRCS4 has 8, VRCZ4 has 4)."""
+        slots = sorted(
+            int(vid.rsplit("-", 1)[1])
+            for vid in self._node.values
+            if vid.startswith(f"{CC_SCENE_CONTROLLER_CONFIGURATION}-")
+            and "-sceneId-" in vid
+        )
+        for slot in slots:
             await self._node.async_invoke_cc_api(
-                CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", scene_id, scene_id
+                CommandClass(CC_SCENE_CONTROLLER_CONFIGURATION), "set", slot, slot
             )
 
     async def _async_apply_associations(self) -> None:
