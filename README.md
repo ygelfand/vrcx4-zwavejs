@@ -16,6 +16,8 @@ A custom integration for the Leviton **VRCS4** (4-button scene controller) and
 
 ## Installation (HACS)
 
+[![My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=vrcx4-zwavejs&owner=ygelfand&category=Integration)
+
 1. In HACS, open the **⋮** menu (top right) → **Custom repositories**.
 2. Add the repository URL `https://github.com/ygelfand/vrcx4-zwavejs` and choose
    category **Integration**, then **Add**.
