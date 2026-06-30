@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Source art for the vrcx4 HACS brand icon (used for both icon and logo).
+     A Leviton VRCS4 / VRCZ4 4-button Z-Wave scene controller: a Decora-style
+     wall keypad with four paddle buttons, each LED lit a different colour to
+     show off the per-button LED control this integration provides, plus the
+     Z-Wave mark printed on the plate. Rasterized by `make brand`. -->
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="plate" x1="54" y1="20" x2="202" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#39424E"/>
+      <stop offset="1" stop-color="#222932"/>
+    </linearGradient>
+    <linearGradient id="btn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4A5563"/>
+      <stop offset="1" stop-color="#333C47"/>
+    </linearGradient>
+
+    <radialGradient id="ledGreen" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#B6FFC6"/><stop offset="0.45" stop-color="#3DDC6E"/><stop offset="1" stop-color="#1F9E4C"/>
+    </radialGradient>
+    <radialGradient id="ledYellow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFF0B8"/><stop offset="0.45" stop-color="#FFC53D"/><stop offset="1" stop-color="#D4951A"/>
+    </radialGradient>
+    <radialGradient id="ledRed" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFC2BE"/><stop offset="0.45" stop-color="#FF5A52"/><stop offset="1" stop-color="#C9362F"/>
+    </radialGradient>
+    <radialGradient id="ledBlue" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#BFD6F2"/><stop offset="0.45" stop-color="#2E6FC4"/><stop offset="1" stop-color="#00396F"/>
+    </radialGradient>
+
+    <filter id="ledGlow" x="-150%" y="-150%" width="400%" height="400%">
+      <feGaussianBlur stdDeviation="2.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- wall plate -->
+  <rect x="54" y="20" width="148" height="216" rx="26" fill="url(#plate)" stroke="#12161C" stroke-width="2"/>
+  <rect x="59" y="25" width="138" height="206" rx="21" fill="none" stroke="#5A6573" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- four paddle buttons (y=42,81,120,159  h=27  gap=12) -->
+  <g stroke="#12161C" stroke-width="1.5">
+    <rect x="76" y="42"  width="104" height="27" rx="8" fill="url(#btn)"/>
+    <rect x="76" y="81"  width="104" height="27" rx="8" fill="url(#btn)"/>
+    <rect x="76" y="120" width="104" height="27" rx="8" fill="url(#btn)"/>
+    <rect x="76" y="159" width="104" height="27" rx="8" fill="url(#btn)"/>
+  </g>
+
+  <!-- one LED per button, each its own colour -->
+  <circle cx="92" cy="55.5"  r="5" fill="url(#ledGreen)"  filter="url(#ledGlow)"/>
+  <circle cx="92" cy="94.5"  r="5" fill="url(#ledYellow)" filter="url(#ledGlow)"/>
+  <circle cx="92" cy="133.5" r="5" fill="url(#ledRed)"    filter="url(#ledGlow)"/>
+  <!-- fourth LED off (unlit) -->
+  <circle cx="92" cy="172.5" r="4.5" fill="#283039" stroke="#1B2128" stroke-width="1"/>
+
+  <!-- Z-Wave mark printed on the plate (disc + white Z + two arcs).
+       Official Z-Wave Alliance vector paths; "WAVE" wordmark dropped. -->
+  <g transform="translate(110,190) scale(0.3)">
+    <path fill="#2E6FC4" d="M80.135,10.642 L80.135,0 C35.845,0.196 0,36.152 0,80.488 C0,80.69 0.014,80.889 0.016,81.091 L10.627,81.091 C10.756,42.549 41.716,11.288 80.135,10.642 Z"/>
+    <path fill="#2E6FC4" d="M80.135,32.8388 L80.135,22.2038 C80.054,22.2028 79.975,22.1968 79.894,22.1968 C47.501,22.1968 21.241,48.4568 21.241,80.8498 C21.241,80.9308 21.247,81.0108 21.247,81.0908 L31.882,81.0908 C32.33,54.6378 53.681,33.2868 80.135,32.8388 Z"/>
+    <path fill="#2E6FC4" d="M80.8708,48.9896 C63.0078,48.9896 48.5268,63.4696 48.5268,81.3326 C48.5268,99.1956 63.0078,113.6766 80.8708,113.6766 C98.7328,113.6766 113.2138,99.1956 113.2138,81.3326 C113.2138,63.4696 98.7328,48.9896 80.8708,48.9896 Z"/>
+    <path fill="#FFFFFF" d="M96.8698,86.9646 L90.4338,97.4236 L62.4348,97.4236 L77.9628,73.3676 L63.6168,73.3676 L69.5948,63.7936 L96.8698,63.7936 L82.3068,86.9646 L96.8698,86.9646 Z"/>
+  </g>
+</svg>
