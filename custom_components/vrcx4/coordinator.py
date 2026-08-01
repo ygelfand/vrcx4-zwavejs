@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from homeassistant.components.zwave_js.helpers import async_get_node_from_device_id
 from homeassistant.const import STATE_ON
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from zwave_js_server.const import CommandClass
@@ -62,7 +63,17 @@ class VRCx4Controller:
         return self._node.node_id
 
     async def async_setup(self) -> None:
-        self._node = async_get_node_from_device_id(self.hass, self.device_id)
+        try:
+            self._node = async_get_node_from_device_id(self.hass, self.device_id)
+        except ValueError as err:
+            raise ConfigEntryNotReady(
+                f"Z-Wave device {self.device_id} is not available yet: {err}"
+            ) from err
+
+        if not self._node.ready:
+            raise ConfigEntryNotReady(
+                f"Z-Wave node {self._node.node_id} has not finished interviewing"
+            )
 
         await self._async_apply_scene_controller_config()
         await self._async_apply_associations()
