@@ -14,7 +14,7 @@ from .const import (
     CONF_TARGETS,
     DOMAIN,
 )
-from .coordinator import ButtonConfig, VRCx4Controller
+from .coordinator import ButtonConfig, VRCx4Controller, async_blank_leds
 from .led import LedColor
 
 type VRCx4ConfigEntry = ConfigEntry[VRCx4Controller]
@@ -46,7 +46,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: VRCx4ConfigEntry) -> boo
 
 async def async_unload_entry(hass: HomeAssistant, entry: VRCx4ConfigEntry) -> bool:
     await entry.runtime_data.async_unload()
+    if entry.disabled_by is not None:
+        await async_blank_leds(hass, entry.data[CONF_CONTROLLER_DEVICE_ID])
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: VRCx4ConfigEntry) -> None:
+    await async_blank_leds(hass, entry.data[CONF_CONTROLLER_DEVICE_ID])
 
 
 async def _async_reload(hass: HomeAssistant, entry: VRCx4ConfigEntry) -> None:

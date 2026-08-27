@@ -1,13 +1,13 @@
 {
   "domain": "vrcx4",
   "name": "Leviton VRCS4 / VRCZ4",
-  "after_dependencies": ["zwave_js"],
   "codeowners": ["@ygelfand"],
   "config_flow": true,
+  "dependencies": ["zwave_js"],
   "documentation": "https://github.com/ygelfand/vrcx4-zwavejs",
   "integration_type": "device",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/ygelfand/vrcx4-zwavejs/issues",
   "requirements": [],
-  "version": "0.1.2"
+  "version": "0.1.3"
 }

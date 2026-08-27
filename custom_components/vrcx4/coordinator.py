@@ -25,7 +25,7 @@ from .const import (
     ZWAVE_JS_VALUE_NOTIFICATION,
 )
 from .led import LedColor, invoke_cc_api_args, pack_light_byte
-from .scene import SceneDeduper, decode_scene
+from .scene_decode import SceneDeduper, decode_scene
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -201,9 +201,23 @@ class VRCx4Controller:
         await self.async_set_leds(colors)
 
     async def async_set_leds(self, colors: list[LedColor]) -> None:
-        light = pack_light_byte(colors)
-        await self._node.async_invoke_cc_api(
-            CommandClass(CC_MANUFACTURER_PROPRIETARY),
-            "sendData",
-            *invoke_cc_api_args(self.node_id, light),
-        )
+        await _async_send_light(self._node, pack_light_byte(colors))
+
+
+async def _async_send_light(node, light: int) -> None:
+    await node.async_invoke_cc_api(
+        CommandClass(CC_MANUFACTURER_PROPRIETARY),
+        "sendData",
+        *invoke_cc_api_args(node.node_id, light),
+    )
+
+
+async def async_blank_leds(hass: HomeAssistant, device_id: str) -> None:
+    try:
+        node = async_get_node_from_device_id(hass, device_id)
+    except (ValueError, KeyError):
+        return
+    try:
+        await _async_send_light(node, pack_light_byte([LedColor.OFF] * NUM_BUTTONS))
+    except Exception as err:  # noqa: BLE001
+        _LOGGER.debug("vrcx4: clearing LEDs on %s failed: %s", device_id, err)
