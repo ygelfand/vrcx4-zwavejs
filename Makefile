@@ -38,7 +38,9 @@ check: ## Validate JSON manifests, brand images, and byte-compile the component
 .PHONY: release
 release: check ## Tag the manifest version and publish a GitHub release (gh)
 	@git diff --quiet HEAD || { echo "working tree dirty — commit first"; exit 1; }
-	@git rev-parse "v$(VERSION)" >/dev/null 2>&1 && { echo "tag v$(VERSION) already exists"; exit 1; } || true
+	@git fetch --tags --quiet
+	@test -z "$$(git ls-remote --tags origin 'refs/tags/v$(VERSION)')" \
+		|| { echo "tag v$(VERSION) already exists — bump the manifest version"; exit 1; }
 	git push
 	gh release create "v$(VERSION)" --title "v$(VERSION)" --generate-notes
 	@echo "released v$(VERSION)"

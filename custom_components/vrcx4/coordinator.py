@@ -12,6 +12,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from zwave_js_server.const import CommandClass
+from zwave_js_server.exceptions import BaseZwaveJSServerError
 
 from zwave_js_server.model.association import AssociationAddress
 
@@ -188,7 +189,13 @@ class VRCx4Controller:
 
     @callback
     def _handle_target_state_change(self, event: Event) -> None:
-        self.hass.async_create_task(self.async_refresh_leds())
+        self.hass.async_create_task(self._async_refresh_leds_logged())
+
+    async def _async_refresh_leds_logged(self) -> None:
+        try:
+            await self.async_refresh_leds()
+        except (BaseZwaveJSServerError, ValueError, KeyError) as err:
+            _LOGGER.debug("vrcx4: LED refresh on %s failed: %s", self.device_id, err)
 
     async def async_refresh_leds(self) -> None:
         colors = [LedColor.OFF] * NUM_BUTTONS
@@ -201,6 +208,7 @@ class VRCx4Controller:
         await self.async_set_leds(colors)
 
     async def async_set_leds(self, colors: list[LedColor]) -> None:
+        self._node = async_get_node_from_device_id(self.hass, self.device_id)
         await _async_send_light(self._node, pack_light_byte(colors))
 
 
